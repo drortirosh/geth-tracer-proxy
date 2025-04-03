@@ -1,0 +1,27 @@
+#!/bin/bash -e
+# perform traceTransaction using traceCall
+remote node is ETH_RPC_URL
+
+#perform "traceCall" for an exsiting TX - like "traceTransaction"
+
+#- get original transcation blockNumber, from,to,data
+tx=`cast tx $1 --json`
+block=$(cast to-dec `echo $tx|jq -r .blockNumber`)
+from=$(echo $tx|jq -r .from)
+to=$(echo $tx|jq -r .to)
+data=$(echo $tx|jq -r .input)
+
+cat <<EOF | cast rpc debug_traceCall --raw --json
+[
+    {
+        "from": "$from",
+        "to": "$to",
+        "data": "$data"
+    },
+    "$(cast to-hex $((block-1)))",
+    {
+        "tracer": "erc7562Tracer"
+    }
+]
+EOF
+

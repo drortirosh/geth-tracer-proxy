@@ -8,7 +8,7 @@ app = Flask(__name__)
 # Fetch the environment variables
 REMOTE_NODE = os.getenv("REMOTE_NODE")
 NATIVE_TRACER = os.getenv("NATIVE_TRACER")
-DEBUG = os.getenv("DEBUG") is not None
+DEBUG = os.getenv("DEBUG") is "1"
 LOCAL_NODE="http://localhost:18545"
 
 print("REMOTE_NODE=",REMOTE_NODE)
@@ -23,7 +23,6 @@ def modify_trace_request(payload):
     try:
         method = payload.get("method")
         params = payload.get("params", [])
-        debug("method=%s %s", method, params)
 
         # Determine options index (2nd for traceTransaction, 3rd for traceCall)
         options_index = 1 if method == "debug_traceTransaction" else 2
@@ -43,23 +42,31 @@ def modify_trace_request(payload):
                 states_override = response.get("result", {})
 
                 # Modify statesOverride structure
-                modified_states_override = {}
+                modified_states_override = options.get("stateOverrides", {})
                 for address, value in states_override.items():
-                    if "nonce" in value:
-                        value["nonce"] = hex(value["nonce"])  # Convert nonce to hex
-                    if "storage" in value:
-                        value["state"] = value.pop("storage")  # Rename "storage" to "state"
-                    modified_states_override[address] = value
+                    entry = modified_states_override.get(address, {})
+                    # copy over values from prestate, but don't override existing values:
+                    # (nonce is converted first to hex, and "state" is named "storage" in the prestateTracer output)
+                    if "nonce" in value and not "nonce" in entry:
+                        entry["nonce"] = hex(value["nonce"])  # prestate has nonce as number, convert to hex
+                    if "storage" in value and not "state" in entry:
+                        entry["state"] = value["storage"]  # Rename "storage" to "state"
+                    if "code" in value and not "code" in entry:
+                        entry["code"] = value["code"]
+                    if "balance" in value and not "balance" in entry:
+                        entry["balance"] = value["balance"]
+                    modified_states_override[address] = entry
 
                 new_options=dict(
                     tracer = NATIVE_TRACER,
+                    tracerConfig = options.get("tracerConfig"),
                     stateOverrides=modified_states_override
                 )
 
                 tx = params[0]
                 # Forward modified request to local geth
                 newpayload=dict( jsonrpc=payload["jsonrpc"], id=payload["id"], 
-                    method=payload["method"], params=[tx,"latest",new_options])
+                    method=method, params=[tx,"latest",new_options])
                 return requests.post(LOCAL_NODE, json=newpayload).json()
     
     except Exception as e:

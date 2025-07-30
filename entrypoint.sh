@@ -1,5 +1,6 @@
-#!/bin/sh -xe
+#!/bin/sh
 
+test -n "$DEBUG" && set -x
 set -e
 
 # Check if an external node URL is provided
@@ -22,7 +23,7 @@ fi
 echo "Using Chain ID: $CHAIN_ID"
 
 # Modify the genesis.json file to update the chain ID
-jq --argjson chainId "$CHAIN_ID" '.config.chainId = $chainId' genesis.json > genesis_tmp.json && mv genesis_tmp.json genesis.json
+jq --argjson chainId "$CHAIN_ID" '.config.chainId = $chainId' genesis.json.templ > genesis.json 
 
 # Initialize geth with the modified genesis file
 geth init genesis.json

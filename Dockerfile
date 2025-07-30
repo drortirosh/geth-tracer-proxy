@@ -10,7 +10,7 @@ RUN apk add --no-cache python3 py3-pip py3-requests py3-flask curl jq
 #RUN pip3 install requests
 
 # Copy the necessary files
-COPY genesis.json ./
+COPY genesis.json.templ ./
 COPY entrypoint.sh /entrypoint.sh
 COPY proxy.py /proxy.py
 RUN chmod +x /entrypoint.sh

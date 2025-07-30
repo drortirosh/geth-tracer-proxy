@@ -1,6 +1,6 @@
 #!/bin/bash -e
 # perform traceTransaction using traceCall
-remote node is ETH_RPC_URL
+#remote node is ETH_RPC_URL
 
 #perform "traceCall" for an exsiting TX - like "traceTransaction"
 

@@ -8,6 +8,7 @@ app = Flask(__name__)
 # Fetch the environment variables
 REMOTE_NODE = os.getenv("REMOTE_NODE")
 NATIVE_TRACER = os.getenv("NATIVE_TRACER")
+DEBUG = os.getenv("DEBUG") is not None
 LOCAL_NODE="http://localhost:18545"
 
 print("REMOTE_NODE=",REMOTE_NODE)
@@ -80,5 +81,5 @@ def proxy():
     return requests.post(REMOTE_NODE, json=payload).json()
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8545, debug=True)
+    app.run(host="0.0.0.0", port=8545, debug=DEBUG)
 

@@ -1,0 +1,4 @@
+[submodule "go-ethereum"]
+	path = go-ethereum
+	url = git@github.com:eth-infinitism/go-ethereum.git
+	branch = erc7562-tracer

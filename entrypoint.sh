@@ -29,7 +29,7 @@ jq --argjson chainId "$CHAIN_ID" '.config.chainId = $chainId' genesis.json.templ
 geth init genesis.json
 
 # Start geth in the background
-geth --networkid "$CHAIN_ID" --dev --http --http.addr 0.0.0.0 --http.port 18545 --http.api debug,eth,net,web3 --ws --ws.addr 0.0.0.0 --ws.port 18546 --ws.api debug,eth,net,web3 --syncmode full --nodiscover --allow-insecure-unlock &
+geth --networkid "$CHAIN_ID" --http --http.addr 0.0.0.0 --http.port 18545 --http.api debug,eth,net,web3 --ws --ws.addr 0.0.0.0 --ws.port 18546 --ws.api debug,eth,net,web3 --syncmode full --nodiscover --allow-insecure-unlock &
 
 
 sleep 1
@@ -38,19 +38,15 @@ sleep 1
 LOCAL=http://localhost:18545
 CT="Content-Type:application/json"
 
-SENDER=$(curl -s -d '{"jsonrpc":"2.0","method":"eth_accounts","params":[],"id":1}' -H $CT $LOCAL| jq -r .result[0])
 # | jq -r .result[0])
 
+#send a transaction: this is the arachnid's deployer (sender (0x3fab184622dc19b6109349b94811493bf2a45362) was added to the genesis)
 cat <<EOF | curl -s -d @- -H $CT $LOCAL
 {
   "jsonrpc": "2.0",
-  "id": 1,
-  "method": "eth_sendTransaction",
-  "params": [
-    {
-      "from": "$SENDER",
-      "to": "0x0000000000000000000000000000000000000000"
-    }
+  "id": "1",
+  "method": "eth_sendRawTransaction",
+  "params": [ "0xf8a58085174876e800830186a08080b853604580600e600039806000f350fe7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe03601600081602082378035828234f58015156039578182fd5b8082525050506014600cf31ba02222222222222222222222222222222222222222222222222222222222222222a02222222222222222222222222222222222222222222222222222222222222222"
   ]
 }
 EOF

@@ -1,22 +1,25 @@
 # GETH wrapper to enable erc7562Tracer
 
-1. build go-ethereum in its homw with `docker build -t erc7562-geth
-	(todo: merge it into this script's build)
-2. in this project, do `docker build -t geth-erc7562-proxy`
-	this will reference the above erc7562-geth
+A wrapper for geth.
+forward all request to remote host
+Special handling for debug_traceCall with tracer=erc7562Tracer
+- run "prestateTracer" on remote host
+- run erc7562 on local geth 
+- return output as if remote node processed the trace.
 
-to run:
+to build docker, run `./build.sh`
+it will create "geth-erc7562-proxy" image.
 
-`docker run --rm -ti -e REMOTE_NODE={nodeurl} -p 8545:8545 -p 8546:8546 geth-erc7562-proxy`
+run locally with `./run {rpcurl}`
 
-- docker image starts, and query REMOTE_NODE for its chainId
-- brings locally a debug geth (with our tracer)
-- all rpc commands are forward as-is to REMOTE_NODE
-- when receiving `debug_traceCall` with `tracer:erc7562Tracer`, it does:
-  - perform `prestateTracer` call on remote node
-  - execute erc7562Tracer locally, with the collected prestate
-- effectively, the outcome is as if the remote node supports erc7562Tracer
 
-NOTE:
-- unfortunately, debug_traceTransaction is harder to handle, since we can't serve the remote block
-- a utility script trace "trace-transaction" makes s "traceCall" on the previous block. this is "almost" as doing traceTransaction
+### testing:
+
+run `./run.sh "https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_KEY}"` in a separate window.
+(first time rebuild the docker)
+
+run `./test.sh` to run a test transaction
+- picks up an old tx on sepolia
+
+- attempt to run against "latest". fails on nonce error (which is expected)
+- repeat against a PREVIOUS block. should succeed...

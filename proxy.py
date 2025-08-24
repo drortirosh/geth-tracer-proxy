@@ -39,7 +39,7 @@ def modify_trace_request(payload):
         tracerConfig = options.get("tracerConfig")
 
         # on all tracers, not only "native"
-        if True: #options.get("tracer") == NATIVE_TRACER or NATIVE_TRACER == "*":
+        if options.get("tracer") == NATIVE_TRACER or NATIVE_TRACER == "*":
             debug( "using native tracer for %s", tracer)
             # Replace "tracer" with "prestateTracer"
             options["tracer"] = "prestateTracer"

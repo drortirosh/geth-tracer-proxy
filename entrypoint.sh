@@ -27,12 +27,18 @@ echo "Using Chain ID: $CHAIN_ID"
 # Modify the genesis.json file to update the chain ID
 jq --argjson chainId "$CHAIN_ID" '.config.chainId = $chainId' genesis.json.templ > genesis.json 
 
+df -h .
+
 # Initialize geth with the modified genesis file
 geth init genesis.json
+
+export GETH_RPC_GASCAP=10000000
 
 # Start geth in the background
 CMD="geth --http --http.addr 0.0.0.0 --http.port 18545 --http.api debug,eth,net,web3 --ws --ws.addr 0.0.0.0 --ws.port 18546 --ws.api debug,eth,net,web3 --syncmode full --nodiscover --allow-insecure-unlock --rpc.allow-unprotected-txs --verbosity $VERBOSITY"
 echo "CMD=$CMD"
+
+# CMD="geth --networkid 115511 --http --http.api eth,net,web3,personal --http.port 8545 --allow-insecure-unlock --mine --miner.etherbase=0x0000000000000000000000000000000000000000"
 $CMD &
 
 
@@ -57,13 +63,15 @@ CT="Content-Type:application/json"
 
 # sleep 1
 
+curl -s -d '{"jsonrpc":"2.0","id":1, "method":"eth_chainId","params":[]}' -H $CT $LOCAL 
+
 # # Sanity: block number is not zero:
 # blocknum=$(curl -s -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' -H $CT $LOCAL | jq -r .result)
 
 # if [ "$blocknum" != "0x1" ]; then
 #   echo "Error: Failed to change local block number"
 # #  exit 1
-fi
+#fi
 
 geth version
 # Start the proxy

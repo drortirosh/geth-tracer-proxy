@@ -34,6 +34,8 @@ def modify_trace_request(payload):
 
         if len(params) > options_index and isinstance(params[options_index], dict):
             options = params[options_index]
+        else: 
+            params.append(options)
 
         tracer = options.get("tracer")
         tracerConfig = options.get("tracerConfig")
@@ -44,7 +46,7 @@ def modify_trace_request(payload):
             # Replace "tracer" with "prestateTracer"
             options["tracer"] = "prestateTracer"
 
-            debug("sending remote prestateTracer")
+            debug("sending remote prestateTracer %s", payload)
             # Forward modified request to the remote node
             response = requests.post(REMOTE_NODE, json=payload).json()
 
@@ -101,6 +103,12 @@ def proxy():
 
     # Forward all other requests to the remote node
     return requests.post(REMOTE_NODE, json=payload).json()
+
+@app.route("/local", methods=["POST"])
+def local():
+    payload = request.get_json()
+    print("running locally")
+    return requests.post(LOCAL_NODE, json=payload).json()
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8545, debug=DEBUG)

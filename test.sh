@@ -1,14 +1,15 @@
-#!/bin/bash -e
+#!/bin/bash -xe
 
 echo 'must have "./run.sh sepolia" active in another window'
 
 TRACER='{"tracer":"erc7562Tracer"}'
-#debug:
-#TRACER='{"tracer":"callTracer"}'
+#debug: use callTracer, to compare same tracing of real and local nodes
+TRACER='{"tracer":"callTracer"}'
 #TRACER='{}'
 
 #an ep7 tx:
 tx=0xe597ac9c9b13fe13a22dbb1a779b5d51306b5b05d4d2b978ce1b3119538fc202
+echo tx = $tx
 #ep8 tx
 #tx=0x9e0fc69a69a4a48b276da45f258b28ef0726108acb7c919c612c49ada62a7ec0
 #determine block number:

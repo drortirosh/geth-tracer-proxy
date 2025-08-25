@@ -17,6 +17,22 @@ print("NATIVE_TRACER=", NATIVE_TRACER)
 if not REMOTE_NODE or not NATIVE_TRACER:
     raise ValueError("Both REMOTE_NODE and NATIVE_TRACER must be set.")
 
+
+#for debug: remove "code" entries
+def debug_clean_code(data):
+    if isinstance(data, dict):
+        result = {}
+        for key, value in data.items():
+            if key == "code":
+                result[key] = "..."
+            else:
+                result[key] = debug_clean_code(value)
+        return result
+    elif isinstance(data, list):
+        return [debug_clean_code(item) for item in data]
+    else:
+        return data
+
 def noNulls(obj):
     return  {key: value for key, value in obj.items() if value is not None}
 
@@ -43,21 +59,27 @@ def modify_trace_request(payload):
         # on all tracers, not only "native"
         if options.get("tracer") == NATIVE_TRACER or NATIVE_TRACER == "*":
             debug( "using native tracer for %s", tracer)
-            # Replace "tracer" with "prestateTracer"
-            options["tracer"] = "prestateTracer"
+            #only traceCall...
+            prestatePayload=dict( jsonrpc=payload["jsonrpc"], id=payload["id"], 
+                method=method, params= params[:2] + [dict(tracer="prestateTracer")] )
 
-            debug("sending remote prestateTracer %s", payload)
+            debug("sending remote prestateTracer %s", prestatePayload)
             # Forward modified request to the remote node
-            response = requests.post(REMOTE_NODE, json=payload).json()
+            response = requests.post(REMOTE_NODE, json=prestatePayload).json()
 
             # debug("prestate result=%s", response)
             # Extract statesOverride from response
             states_override = response.get("result", {})
 
-            # Modify statesOverride structure
-            modified_states_override = options.get("stateOverrides", {})
+            # Modify original request's statesOverride structure
+            orig_states_override = options.get("stateOverrides", {})
+            # debug( "original stateOverrides %s", orig_states_override)
             for address, value in states_override.items():
-                entry = modified_states_override.get(address, {})
+                #don't state-override precompiles.
+                if int(address,0) < 512:
+                  continue
+
+                entry = orig_states_override.get(address, {})
                 # copy over values from prestate, but don't override existing values:
                 # (nonce is converted first to hex, and "state" is named "storage" in the prestateTracer output)
                 if "nonce" in value and not "nonce" in entry:
@@ -68,10 +90,10 @@ def modify_trace_request(payload):
                     entry["code"] = value["code"]
                 if "balance" in value and not "balance" in entry:
                     entry["balance"] = value["balance"]
-                modified_states_override[address] = entry
+                orig_states_override[address] = entry
 
             new_options=noNulls(dict(
-                stateOverrides = modified_states_override,
+                stateOverrides = orig_states_override,
                 tracer = tracer,
                 tracerConfig = tracerConfig,
                 blockoverrides = dict(number="0x878604")
@@ -79,9 +101,10 @@ def modify_trace_request(payload):
 
             tx = params[0]
             # Forward modified request to local geth
+            #only tracecall
             newpayload=dict( jsonrpc=payload["jsonrpc"], id=payload["id"], 
                 method=method, params=[tx,"latest",new_options])
-            # debug(">> %s", newpayload)
+            # debug(">> %s", debug_clean_code(newpayload))
             resp = requests.post(LOCAL_NODE, json=newpayload).json()
             # debug("<< resp=%s", resp)
             return resp

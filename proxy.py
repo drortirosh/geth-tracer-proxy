@@ -8,7 +8,7 @@ app = Flask(__name__)
 # Fetch the environment variables
 REMOTE_NODE = os.getenv("REMOTE_NODE")
 NATIVE_TRACER = os.getenv("NATIVE_TRACER")
-DEBUG = len(os.getenv("DEBUG")) > 0
+DEBUG = len(os.getenv("DEBUG", "")) > 0
 LOCAL_NODE="http://localhost:18545"
 
 print("REMOTE_NODE=",REMOTE_NODE)

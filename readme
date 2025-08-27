@@ -15,11 +15,10 @@ run locally with `./run {rpcurl}`
 
 ### testing:
 
-run `./run.sh "https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_KEY}"` in a separate window.
-(first time rebuild the docker)
+run `./test.sh`
 
-run `./test.sh` to run a test transaction
-- picks up an old tx on sepolia
+- it grabs an old sepolia tx
+- runs against latest block (fails non "nonce error")
+- runs against a block before, and it succeeds
 
-- attempt to run against "latest". fails on nonce error (which is expected)
-- repeat against a PREVIOUS block. should succeed...
+with `native_tracer="*"`, can run any tracer with local geth (e.g. callTracer), and compare the outputs, and they are the same

@@ -60,8 +60,14 @@ def modify_trace_request(payload):
         if options.get("tracer") == NATIVE_TRACER or NATIVE_TRACER == "*":
             debug( "using native tracer for %s", tracer)
             #only traceCall...
-            prestatePayload=dict( jsonrpc=payload["jsonrpc"], id=payload["id"], 
-                method=method, params= params[:2] + [dict(tracer="prestateTracer")] )
+            if len(params) <= 2 :
+                prestatePayload=dict( jsonrpc=payload["jsonrpc"], id=payload["id"], 
+                    method=method, params= params[:2] + [dict(tracer="prestateTracer")] )
+            else:
+                params[2]["tracer"] = "prestateTracer"
+                prestatePayload=dict(jsonrpc=payload["jsonrpc"], id=payload["id"],
+                    method=method, params=params
+                )
 
             debug("sending remote prestateTracer %s", prestatePayload)
             # Forward modified request to the remote node

@@ -139,6 +139,7 @@ def local():
     print("running locally")
     return requests.post(LOCAL_NODE, json=payload).json()
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8545, debug=DEBUG)
+#needed only when launched directly with flask:
+#if __name__ == "__main__":
+#    app.run(host="0.0.0.0", port=8545, debug=DEBUG)
 

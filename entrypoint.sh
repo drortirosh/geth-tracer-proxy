@@ -75,5 +75,6 @@ curl -s -d '{"jsonrpc":"2.0","id":1, "method":"eth_chainId","params":[]}' -H $CT
 
 geth version
 # Start the proxy
-exec python3 /proxy.py
+#exec python3 /proxy.py
+gunicorn --bind 0.0.0.0:8545 proxy:app --workers 4 --pythonpath / -c /gunicorn.conf.py
 

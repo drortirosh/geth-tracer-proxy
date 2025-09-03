@@ -4,7 +4,7 @@ FROM erc7562-geth
 WORKDIR /geth
 
 # Install dependencies
-RUN apk add --no-cache python3 py3-pip py3-requests py3-flask curl jq
+RUN apk add --no-cache python3 py3-pip py3-requests py3-flask curl jq py3-gunicorn
 
 # Install Python packages (requests)
 #RUN pip3 install requests
@@ -12,6 +12,7 @@ RUN apk add --no-cache python3 py3-pip py3-requests py3-flask curl jq
 # Copy the necessary files
 COPY genesis.json.templ ./
 COPY entrypoint.sh /entrypoint.sh
+COPY gunicorn.conf.py /gunicorn.conf.py
 COPY proxy.py /proxy.py
 RUN chmod +x /entrypoint.sh
 

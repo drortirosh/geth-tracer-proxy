@@ -1,6 +1,0 @@
-[submodule "go-ethereum"]
-	path = go-ethereum
-	url = git@github.com:eth-infinitism/go-ethereum.git
-	branch = master
-[submodule "go-ethereum/"]
-	branch = master

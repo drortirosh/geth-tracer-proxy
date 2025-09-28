@@ -5,10 +5,24 @@ set -e
 
 VERBOSITY=1
 
+test -z "$PORT" && PORT=8545
+
 # Check if an external node URL is provided
 if [ -z "$REMOTE_NODE" ]; then
   echo "Error: REMOTE_NODE is not set."
   exit 1
+fi
+
+if [ -n "$FORK" ]; then
+  echo FORK mode. starting anvil.
+  anvil --silent --port 8888 --fork-url $REMOTE_NODE &
+  sleep 1
+  #older tracers need the forked node
+  export FORKED_REMOTE_NODE=$REMOTE_NODE
+  REMOTE_NODE=http://localhost:8888
+  until cast chain-id -r $REMOTE_NODE >/dev/null 2>&1; do
+    sleep 1
+  done
 fi
 
 # Fetch the chain ID from the external node
@@ -61,20 +75,13 @@ CT="Content-Type:application/json"
 # }
 # EOF
 
-# sleep 1
+sleep 1
+#curl -s -d '{"jsonrpc":"2.0","id":1, "method":"eth_chainId","params":[]}' -H $CT $LOCAL 
 
-curl -s -d '{"jsonrpc":"2.0","id":1, "method":"eth_chainId","params":[]}' -H $CT $LOCAL 
-
-# # Sanity: block number is not zero:
-# blocknum=$(curl -s -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' -H $CT $LOCAL | jq -r .result)
-
-# if [ "$blocknum" != "0x1" ]; then
-#   echo "Error: Failed to change local block number"
-# #  exit 1
-#fi
+cast ci -r $LOCAL
 
 geth version
 # Start the proxy
 #exec python3 /proxy.py
-gunicorn --bind 0.0.0.0:8545 proxy:app --workers 4 --pythonpath / -c /gunicorn.conf.py
-
+gunicorn --bind 0.0.0.0:$PORT proxy:app --access-logfile /dev/null --log-level WARNING --workers 4 --pythonpath / -c /gunicorn.conf.py
+echo exit with code $?

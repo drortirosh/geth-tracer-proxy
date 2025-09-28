@@ -12,6 +12,9 @@ NATIVE_TRACER = os.getenv("NATIVE_TRACER")
 DEBUG = len(os.getenv("DEBUG", "")) > 0
 LOCAL_NODE="http://localhost:18545"
 
+#using fork
+FORKED_REMOTE_NODE=os.getenv("FORKED_REMOTE_NODE")
+
 print("REMOTE_NODE=",REMOTE_NODE)
 print("NATIVE_TRACER=", NATIVE_TRACER)
 print("DEBUG=",DEBUG)
@@ -74,6 +77,13 @@ def modify_trace_request(payload):
             debug("sending remote prestateTracer %s", prestatePayload)
             # Forward modified request to the remote node
             response = requests.post(REMOTE_NODE, json=prestatePayload).json()
+            if response.get("error") is not None:
+                if FORKED_REMOTE_NODE is not None and "BlockOutOfRangeError" in response.get("error").get("message"):
+                    # prestate failed against anvil, because it queries for an older transaction. 
+                    # resubmit to the real forked node
+                    response = requests.post(FORKED_REMOTE_NODE, json=prestatePayload).json()
+                if response.get("error") is not None:
+                    return response
 
             # debug("prestate result=%s", response)
             # Extract statesOverride from response

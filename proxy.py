@@ -7,12 +7,14 @@ app = Flask(__name__)
 
 # Fetch the environment variables
 REMOTE_NODE = os.getenv("REMOTE_NODE")
+PORT = os.getenv("PORT", "8545")
 NATIVE_TRACER = os.getenv("NATIVE_TRACER")
 DEBUG = len(os.getenv("DEBUG", "")) > 0
 LOCAL_NODE="http://localhost:18545"
 
 print("REMOTE_NODE=",REMOTE_NODE)
 print("NATIVE_TRACER=", NATIVE_TRACER)
+print("DEBUG=",DEBUG)
 
 if not REMOTE_NODE or not NATIVE_TRACER:
     raise ValueError("Both REMOTE_NODE and NATIVE_TRACER must be set.")
@@ -141,5 +143,5 @@ def local():
 
 #needed only when launched directly with flask:
 #if __name__ == "__main__":
-#    app.run(host="0.0.0.0", port=8545, debug=DEBUG)
+#    app.run(host="0.0.0.0", port=PORT, debug=DEBUG)
 
